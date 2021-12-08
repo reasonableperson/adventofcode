@@ -2,11 +2,9 @@ input = document.body.innerText.trim().split('\n')
   .map(l => l.split(' | ').map(s => s.split(' ')))
   .map(part => part.map(xs => xs.map(s => [...s].sort().join(''))))
 
-part1 = input.map(([_, out]) => out.filter(s => [2,3,4,7].includes(s.length)).length)
-  .reduce((a,b) => a+b) // 532
+part1 = input.map(p => p[1]).flat().filter(s => [2,3,4,7].includes(s.length)).length // 532
 
-subset = (big, small, overlap = small.length) =>
-  [...small].filter(c => [...big].includes(c)).length == overlap
+subset = (big, sml, overlap=sml.length) => [...sml].filter(c => [...big].includes(c)).length == overlap
 
 part2 = input.map(([signal, out]) => {
   map = new Map
