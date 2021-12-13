@@ -1,12 +1,12 @@
-var [dots, steps] = document.body.innerText.trim().split('\n\n').map(block => block.split('\n'))
+var [dots, steps] = document.body.innerText.trim().split('\n\n').map(b => b.split('\n'))
 
 dots = dots.map(xy => xy.split(',').map(Number))
 
 steps = steps.map(s => [s.match(/x|y/)[0], s.match(/\d+/)[0]])
 
-flip = (dots, [axis, offset]) => axis == 'y' ?
-  dots.map(([x,y]) => y < offset ? [x,y] : [x, offset - (Math.abs(y - offset))]) :
-  dots.map(([x,y]) => x < offset ? [x,y] : [offset - (Math.abs(x - offset)), y])
+fold = (dots, [axis, offset]) => axis == 'y' ?
+  dots.map(([x,y]) => y < offset ? [x,y] : [x, 2*offset-y]) :
+  dots.map(([x,y]) => x < offset ? [x,y] : [2*offset-x, y])
 
 set = dots => new Set(dots.map(([x,y]) => x+','+y))
 
@@ -19,6 +19,6 @@ draw = dots => {
   console.log(result)
 }
 
-part1 = set(steps.slice(0,1).reduce(flip, dots)).size // 621
+part1 = set([steps[0]].reduce(fold, dots)).size // 621
 
-part2 = draw(steps.reduce(flip, dots)) // HKUJGAJZ
+part2 = draw(steps.reduce(fold, dots)) // HKUJGAJZ
