@@ -1,48 +1,53 @@
-input = document.body.innerText.trim()
-// examples = ['38006F45291200', 'EE00D40C823060', '8A004A801A8002F478', '620080001611562C8802118E34', 'C0015000016115A2E0802F182340', 'A0016C880162017C3686B18A3D4780']
+var parse = str => [...str].map(c => parseInt(c,16).toString(2).padStart(4,0)).join('')
 
-parse = str => [...str].map(c => parseInt(c,16).toString(2).padStart(4,0)).join('')
+var operations = [
+  ps => ps.reduce((a,b) => a+b, 0),
+  ps => ps.reduce((a,b) => a*b, 1),
+  ps => Math.min(...ps),
+  ps => Math.max(...ps),
+  null,
+  ps => ps[0] > ps[1] ? 1 : 0,
+  ps => ps[0] < ps[1] ? 1 : 0,
+  ps => ps[0] == ps[1] ? 1 : 0
+]
 
-open = (packet, recurse = Infinity) => {
-  if (!packet.match(/1/)) {
-	console.log('junk', packet)
-	return 0
+var literal = rest => {
+  var [done, bs] = [false, '']
+  while (!done) {
+    if (rest[0] == 0) done = true
+    bs += rest.slice(1,5)
+    rest = rest.slice(5)
   }
-  version = parseInt(packet.slice(0,3),2)
-  sum += version
-  var type = parseInt(packet.slice(3,6),2)
-  var rest = packet.slice(6)
-  var result = ''
-  console.log('P', packet.length, recurse)
-  if (type == 4) {
-	console.log('  literal', 'version', version)
-	var done = false
-	while (rest.length > 4 && !done) {
-	  if (rest[0] == 0) done = true
-	  var byte = rest.slice(1,5)
-	  rest = rest.slice(5)
-	  result += byte
-	}
-	console.log('  result', result, 'rest', rest.length, 'recurse', recurse)
-	if (rest.length > 5) open(rest, recurse - 1)
-  } else {
-	if (rest[0] == 0) {
-	  console.log('  operator - length', 'version', version)
-	  var length = parseInt(rest.slice(1,16),2)
-	  console.log('  length', length, 'rest', rest.length - length - 16)
-	  open(rest.slice(16, 16 + length))
-	  open(rest.slice(16 + length), recurse - 1)
-	} else {
-	  console.log('  operator - subpacket', 'version', version)
-	  recurse = parseInt(rest.slice(1,12),2)
-	  console.log('  recurse', recurse, 'times')
-	  open(rest.slice(12), recurse - 1)
-	}
-  }
-  return sum
+  return [parseInt(bs,2), rest]
 }
 
-var sum = 0; open(parse(input)) // 1007
+var open = (packet, sum = [0]) => {
+  sum[0] += parseInt(packet.slice(0,3),2)
+  var type = parseInt(packet.slice(3,6),2)
+  var rest = packet.slice(6)
+  if (type == 4)
+	return literal(rest).concat([sum])
+  else if (rest[0] == 0) {
+    var length = parseInt(rest.slice(1,16),2)
+	var payload = rest.slice(16, 16 + length)
+	var list = []
+	while (payload.length > 0) {
+	  var [next, payload] = open(payload, sum)
+	  list.push(next)
+	}
+	return [operations[type](list), rest.slice(16 + length), sum]
+  } else {
+	var count = parseInt(rest.slice(1,12),2)
+	var list = []
+	rest = rest.slice(12)
+	while (count > 0) {
+	  var [next, rest] = open(rest, sum)
+	  list.push(next)
+	  count--
+	}
+	return [operations[type](list), rest, sum]
+  }
+}
 
-// open(parse(examples[5]))
-// open(parse("281"))
+part1 = open(parse(document.body.innerText.trim()))[2][0] // 1007
+part2 = open(parse(document.body.innerText.trim()))[0] // 834151779165
