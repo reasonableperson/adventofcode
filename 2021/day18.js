@@ -8,44 +8,37 @@ var get = (snailfish, path) => {
 
 var set = (snailfish, path, value) => {
   while (path.length > 1) snailfish = snailfish[path.shift()]
-  snailfish[path.shift()] = value
+  snailfish[path[0]] = value
 }
 
 var traverse = snailfish => {
   var path = [0]
-  var list = []
-  var current
-  while (true) {
-    current = get(snailfish, path)
-    if (path.length == 0) {return list}
-    if (Array.isArray(current)) {
+  var paths = []
+  while (path.length > 0) {
+    if (Array.isArray(get(snailfish, path)))
       path.push(0)
-    } else if (path.at(-1) == 0) {
-      list.push([...path])
-      path[path.length-1] = 1
-    } else {
-      list.push([...path])
+    else {
+      paths.push([...path])
       while (path.at(-1) == 1) path.pop()
       path[path.length-1] = 1
     }
   }
+  return paths
 }
 
-var explode = (snailfish, paths = traverse(snailfish)) => {
-  var paths = traverse(snailfish)
+var explode = (snailfish, paths) => {
   var targetIndex = paths.findIndex((p,i) => p.length > 4 && p.length == paths[i+1].length)
-  var targetPath = paths[targetIndex].slice(0, paths[targetIndex].length-1)
-  var leftPath = paths?.[targetIndex-1]
-  var rightPath = paths?.[targetIndex+2]
+  var targetPath = paths[targetIndex]; targetPath.pop()
+  var [leftPath, rightPath] = [paths?.[targetIndex-1], paths?.[targetIndex+2]]
   if (leftPath)
-    set(snailfish, leftPath, get(snailfish, targetPath.concat([0])) + get(snailfish, leftPath))
+    set(snailfish, leftPath, get(snailfish, [...targetPath, 0]) + get(snailfish, leftPath))
   if (rightPath)
-    set(snailfish, rightPath, get(snailfish, targetPath.concat([1])) + get(snailfish, rightPath))
+    set(snailfish, rightPath, get(snailfish, [...targetPath, 1]) + get(snailfish, rightPath))
   set(snailfish, targetPath, 0)
   return snailfish
 }
 
-var split = (snailfish, paths = traverse(snailfish)) => {
+var split = (snailfish, paths) => {
   var targetIndex = paths.findIndex(p => get(snailfish, p) > 9)
   var n = get(snailfish, paths[targetIndex])
   set(snailfish, paths[targetIndex], [Math.floor(n/2), Math.ceil(n/2)])
@@ -56,7 +49,6 @@ var reduce = snailfish => {
   snailfish = JSON.parse(JSON.stringify(snailfish))
   while (true) {
     var paths = traverse(snailfish)
-    var find = paths.find((p,i) => p.length > 4 && p.length == paths[i+1].length)
     if (paths.find((p,i) => p.length > 4 && p.length == paths[i+1].length))
       snailfish = explode(snailfish, paths)
     else if (paths.find(p => get(snailfish, p) > 9))
@@ -65,13 +57,10 @@ var reduce = snailfish => {
   }
 }
 
-var magnitude = snailfish => {
-  if (!Array.isArray(snailfish)) return snailfish
-  return 3*magnitude(snailfish[0]) + 2*magnitude(snailfish[1])
-}
+var magnitude = snailfish => !Array.isArray(snailfish) ? snailfish :
+  3 * magnitude(snailfish[0]) + 2 * magnitude(snailfish[1])
 
-var part1 = input => input.slice(1)
-  .reduce((prev, next) => reduce([prev, next]), input[0])
+var part1 = input => input.reduce((s1, s2) => reduce([s1, s2]))
 
 console.log(magnitude(part1(input))) // 4347
 
