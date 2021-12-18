@@ -27,7 +27,7 @@ var traverse = snailfish => {
 }
 
 var explode = (snailfish, paths) => {
-  var targetIndex = paths.findIndex((p,i) => p.length > 4 && p.length == paths[i+1].length)
+  var targetIndex = paths.findIndex(p => p.length > 4)
   var targetPath = paths[targetIndex]; targetPath.pop()
   var [leftPath, rightPath] = [paths?.[targetIndex-1], paths?.[targetIndex+2]]
   if (leftPath)
@@ -49,7 +49,7 @@ var reduce = snailfish => {
   snailfish = JSON.parse(JSON.stringify(snailfish))
   while (true) {
     var paths = traverse(snailfish)
-    if (paths.find((p,i) => p.length > 4 && p.length == paths[i+1].length))
+    if (paths.find(p => p.length > 4))
       snailfish = explode(snailfish, paths)
     else if (paths.find(p => get(snailfish, p) > 9))
       snailfish = split(snailfish, paths)
@@ -60,22 +60,10 @@ var reduce = snailfish => {
 var magnitude = snailfish => !Array.isArray(snailfish) ? snailfish :
   3 * magnitude(snailfish[0]) + 2 * magnitude(snailfish[1])
 
-var part1 = input => input.reduce((s1, s2) => reduce([s1, s2]))
+var part1 = magnitude(input.reduce((s1, s2) => reduce([s1, s2])))
 
-console.log(magnitude(part1(input))) // 4347
+console.log('part 1', part1) // 4347
 
-var part2 = input => {
-  var max = 0
-  input.forEach((s1, i) => input.forEach((s2, j) => {
-    if (i != j) {
-      var m = magnitude(reduce([s1, s2]))
-      if (m > max) {
-        console.log([i,j], JSON.stringify([s1,s2]), m)
-        max = m
-      }
-    }
-  }))
-  return max
-}
+var part2 = input.reduce((max, s1) => Math.max(max, ...input.map(s2 => magnitude(reduce([s1, s2])))), 0)
 
-console.log(part2(input)) // 4721
+console.log('part 2', part2) // 4721
