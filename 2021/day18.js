@@ -1,8 +1,7 @@
 var input = (await Deno.readTextFile('in/day18_pt1.txt')).trim().split('\n').map(JSON.parse)
 
 var get = (snailfish, path) => {
-  path = JSON.parse(JSON.stringify(path))
-  while (path.length > 0) snailfish = snailfish[path.shift()]
+  path.forEach(i => snailfish = snailfish[i])
   return snailfish
 }
 
