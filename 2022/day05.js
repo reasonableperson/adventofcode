@@ -1,15 +1,11 @@
-var [stacks, steps] = document.body.innerText
+input = document.body.innerText
   .split('\n\n').map(s => s.split('\n').filter(x=>x))
 
-stacks = stacks.slice(0,-1).reverse()
-stacks = stacks.reduce((result, line) => {
-  line.match(/[A-Z]|    /g).forEach((m, i) => {
-	if (/[A-Z]/.exec(m)) result[i] += m
-  })
-  return result
-}, Array(9).fill(""))
+stacks = input[0].slice(0,-1).reduce((result, _, i, arr) => 
+  result.map((s, j) => s += arr[arr.length-1-i].match(/[A-Z]|    /g)[j] || ''),
+  Array(9).fill("")).map(s => s.replaceAll(' ', ''))
 
-steps = steps.map(s => s.match(/[0-9]+/g).map(d => parseInt(d)))
+steps = input[1].map(s => s.match(/[0-9]+/g).map(d => parseInt(d)))
 
 solve = pt => (result, [n, from, to]) => {
   var chunk = result[from-1].slice([result[from-1].length - n])
