@@ -1,14 +1,14 @@
 input = document.body.innerText
   .split('\n\n').map(s => s.split('\n').filter(x=>x))
 
-stacks = input[0].slice(0,-1).reduce((result, _, i, arr) => 
-  result.map((s, j) => s += arr[arr.length-1-i].match(/[A-Z]|    /g)[j] || ''),
-  Array(9).fill('')).map(s => s.replaceAll(' ', ''))
+stacks = input[0].slice(0,-1).reverse()
+  .reduce((a, row) => row.match(/[A-Z]|    /g).map((m,i) => a[i] + (m[1]?'':m)),
+    Array((input[0][0].length + 1) / 4).fill('') )
 
 steps = input[1].map(s => s.match(/[0-9]+/g).map(d => parseInt(d)-1))
 
 solve = pt => (result, [n, from, to]) => {
-  var chunk = result[from].slice(-1-n)
+  chunk = result[from].slice(-1-n)
   result[to] += pt == 1 ? [...chunk].reverse().join('') : chunk
   result[from] = result[from].slice(0,-1-n)
   return result
