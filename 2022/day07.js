@@ -9,20 +9,17 @@ walk = ([paths, cwd], line) => {
         cwd = cwd.split('/').slice(0, -1).join('/') || '/'
       else {
         cwd += (cwd == '/' ? '' : '/') + line[2]
-        paths[cwd] = null
+        paths.push([cwd, 0])
       }
     }
-  } else if (line[0] != 'dir')
-    paths[cwd] += parseInt(line[0])
+  } else if (line[0] != 'dir') {
+    paths.find(p => p[0] == cwd)[1] += parseInt(line[0])
+  }
   return [paths, cwd]
 }
 
-paths = input.reduce(walk, [{'/': 0},'/'])[0]
-
-descendsFrom = (a, b) => b.length > a.length && b.slice(0, a.length) == a
-
-sizes = Object.entries(paths)
-  .map(([k1,v1],_,a) => v1 + a.reduce((sum, [k2,v2]) => sum + (descendsFrom(k1, k2) ? v2 : 0), 0))
+sizes = input.reduce(walk, [[['/', 0]],'/'])[0]
+  .map(([k1,v1],_,a) => a.reduce((sum, [k2,v2]) => sum + (k2.slice(0, k1.length) == k1 ? v2 : 0), 0))
 
 part1 = sizes.reduce((sum, s) => s <= 100000 ? s + sum : sum, 0) // 1555642
   
